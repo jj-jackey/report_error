@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AlertCircle, Send, X, CheckCircle } from 'lucide-react';
 import { submitErrorReport } from '../services/errorService';
 import { getErrorContext } from '../utils/browserInfo';
 import toast, { Toaster } from 'react-hot-toast';
 
 const ErrorReportForm = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     errorTitle: '',
     errorDetail: '',
@@ -18,10 +21,20 @@ const ErrorReportForm = () => {
   const [context, setContext] = useState(null);
 
   useEffect(() => {
+    // 잘못된 URL 형태 자동 수정
+    const currentPath = location.pathname;
+    if (currentPath.includes('/report/project=')) {
+      const project = currentPath.split('project=')[1];
+      if (project) {
+        navigate(`/report?project=${decodeURIComponent(project)}`, { replace: true });
+        return;
+      }
+    }
+
     // 컴포넌트 마운트시 브라우저 정보 수집
     const errorContext = getErrorContext();
     setContext(errorContext);
-  }, []);
+  }, [location, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

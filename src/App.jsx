@@ -39,6 +39,7 @@ function App() {
       <Routes>
         {/* 오류 보고 폼 - 누구나 접근 가능 */}
         <Route path="/report" element={<ErrorReportForm />} />
+        <Route path="/report/*" element={<ErrorReportForm />} />
         
         {/* 로그인 페이지 */}
         <Route 
