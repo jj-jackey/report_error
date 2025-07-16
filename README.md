@@ -21,9 +21,10 @@
 - **RLS 정책**: 데이터베이스 보안 정책 적용
 - **익명 보고**: 로그인 없이 오류 보고 가능
 
-### 📧 알림 기능 (예정)
-- **이메일 발송**: 처리 결과 자동 알림
-- **상태 변경 알림**: 실시간 상태 업데이트
+### 📧 이메일 알림 기능 ✅
+- **관리자 답변 발송**: Gmail SMTP를 통한 답변 이메일 발송
+- **상태 변경 알림**: 상태 업데이트 시 자동 이메일 알림
+- **Rate Limiting**: Gmail 제한 대응 큐 시스템 (일일 400개, 시간당 80개)
 
 ## 🚀 빠른 시작
 
@@ -37,16 +38,23 @@ npm install
 
 ### 2. 환경 변수 설정
 
-`.env.example` 파일을 `.env`로 복사하고 Supabase 정보를 입력하세요:
-
-```bash
-cp .env.example .env
-```
-
+**프론트엔드 (.env):**
 ```env
 VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_API_BASE_URL=http://localhost:3001
+VITE_FRONTEND_URL=http://localhost:5173
 ```
+
+**백엔드 (backend/.env):**
+```env
+EMAIL_USER=your_gmail_address@gmail.com
+EMAIL_PASS=your_gmail_app_password
+PORT=3001
+FRONTEND_URL=http://localhost:5173
+```
+
+> 💡 Gmail App Password 생성 방법: Google 계정 → 보안 → 2단계 인증 → 앱 비밀번호
 
 ### 3. Supabase 데이터베이스 설정
 
@@ -54,11 +62,26 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ### 4. 개발 서버 실행
 
+**방법 1: 터미널 2개 사용 (추천)**
+
+터미널 1 (프론트엔드):
 ```bash
 npm run dev
 ```
 
-브라우저에서 `http://localhost:5173`에 접속하세요.
+터미널 2 (백엔드):
+```bash
+npm run dev:backend
+```
+
+**방법 2: 한 번에 실행 (Windows에서 오류 발생 시 방법 1 사용)**
+```bash
+npm run dev:all
+```
+
+**접속:**
+- 프론트엔드: `http://localhost:5173`
+- 백엔드 API: `http://localhost:3001`
 
 ## 📖 사용법
 
@@ -205,6 +228,47 @@ Supabase 대시보드에서:
 1. Authentication > Users
 2. "Add User" 클릭
 3. 이메일/비밀번호 입력
+
+## 🚀 배포 가이드
+
+### Render.com 배포
+
+**프론트엔드 배포:**
+1. GitHub에 프로젝트 Push
+2. Render.com → New Static Site
+3. GitHub 연결 후 레포지토리 선택
+4. 설정:
+   - Build Command: `npm run build`
+   - Publish Directory: `dist`
+5. 환경변수 설정:
+   ```
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_key
+   VITE_API_BASE_URL=https://your-backend-url.onrender.com
+   VITE_FRONTEND_URL=https://your-frontend-url.onrender.com
+   ```
+
+**백엔드 배포:**
+1. Render.com → New Web Service
+2. GitHub 연결 → 같은 레포지토리 선택
+3. 설정:
+   - Root Directory: `backend`
+   - Build Command: `npm install`
+   - Start Command: `npm start`
+4. 환경변수 설정:
+   ```
+   EMAIL_USER=your_gmail@gmail.com
+   EMAIL_PASS=your_gmail_app_password
+   PORT=3001
+   FRONTEND_URL=https://your-frontend-url.onrender.com
+   ```
+
+### 환경변수 업데이트
+
+배포 후 프론트엔드 `VITE_API_BASE_URL`을 실제 백엔드 URL로 변경:
+```env
+VITE_API_BASE_URL=https://your-backend-url.onrender.com
+```
 
 ## 📝 라이센스
 

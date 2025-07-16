@@ -21,14 +21,71 @@
 
 .form-input {
   @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors;
+  background-color: #ffffff;
+}
+
+.form-input:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .form-textarea {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-y;
+  @apply w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-y;
+  background-color: #fafafa;
+  min-height: 100px;
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.form-textarea:focus {
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .form-select {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors;
+  @apply w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.2em 1.2em;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  appearance: none;
+  cursor: pointer;
+  background-color: #ffffff;
+  font-size: 0.875rem;
+  height: 2.5rem;
+}
+
+.form-select:hover {
+  border-color: #9ca3af;
+}
+
+.form-select:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-select-compact {
+  @apply border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1em 1em;
+  padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+  appearance: none;
+  cursor: pointer;
+  background-color: #ffffff;
+  font-size: 0.75rem;
+  height: 2rem;
+  min-width: 120px;
+  width: auto;
+}
+
+.form-select-compact:hover {
+  border-color: #9ca3af;
+}
+
+.form-select-compact:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
 .status-badge {

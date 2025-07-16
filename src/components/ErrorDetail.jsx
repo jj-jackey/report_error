@@ -13,6 +13,9 @@ import {
   XCircle
 } from 'lucide-react';
 import { updateErrorReport, getErrorReports } from '../services/errorService';
+import { sendErrorNotification, sendStatusUpdateNotification } from '../services/emailService';
+import { sendErrorNotificationViaGmail, sendStatusUpdateNotificationViaGmail } from '../services/gmailService';
+import { sendEmailWithRateLimit, sendStatusUpdateWithRateLimit, sendAdminReplyWithRateLimit, getEmailStatus } from '../services/emailRateLimiter';
 import toast from 'react-hot-toast';
 
 const ErrorDetail = ({ onStatsUpdate }) => {
@@ -66,10 +69,42 @@ const ErrorDetail = ({ onStatsUpdate }) => {
 
   const handleSave = async () => {
     setSaving(true);
+    
+    // 상태 변경 확인
+    const oldStatus = error.status;
+    const newStatus = formData.status;
+    const statusChanged = oldStatus !== newStatus;
+    
     try {
       const result = await updateErrorReport(id, formData);
       if (result.success) {
         toast.success('오류 보고서가 업데이트되었습니다.');
+        
+        // 상태가 변경되었으면 이메일 알림 발송 (Rate Limiter 적용)
+        if (statusChanged && error.user_email) {
+          try {
+            const emailResult = await sendStatusUpdateWithRateLimit(
+              error, 
+              oldStatus, 
+              newStatus, 
+              error.user_email
+            );
+            
+            if (emailResult.success) {
+              toast.success('상태 변경 알림이 큐에 추가되어 발송 예정입니다.');
+              
+              // 큐 상태 정보 표시
+              const status = emailResult.status;
+              if (status.queueLength > 1) {
+                toast.info(`현재 큐에 ${status.queueLength}개의 이메일이 대기 중입니다.`);
+              }
+            }
+          } catch (emailError) {
+            console.warn('이메일 알림 발송 실패:', emailError);
+            // 이메일 실패는 주요 기능에 영향을 주지 않도록 warning만 표시
+          }
+        }
+        
         setError(prev => ({ ...prev, ...formData }));
         onStatsUpdate?.();
       } else {
@@ -82,14 +117,85 @@ const ErrorDetail = ({ onStatsUpdate }) => {
     }
   };
 
+  // 전체 보고서 이메일 발송 (주석처리)
+  /*
   const handleSendEmail = async () => {
-    if (!error.user_email) {
-      toast.error('이메일 주소가 없습니다.');
+    // 이메일 주소 확인 (사용자 이메일 또는 기본 관리자 이메일)
+    const recipientEmail = error.user_email || 'admin@yourcompany.com';
+    
+    try {
+      // 로딩 토스트 표시
+      const loadingToast = toast.loading('이메일을 큐에 추가하는 중...');
+      
+      // 이메일 발송 (Gmail SMTP + Rate Limiter 사용)
+      const result = await sendEmailWithRateLimit(error, recipientEmail);
+      
+      // 로딩 토스트 제거
+      toast.dismiss(loadingToast);
+      
+      if (result.success) {
+        toast.success(`이메일이 큐에 추가되어 ${recipientEmail}으로 발송 예정입니다.`);
+        
+        // 큐 및 제한 상태 정보 표시
+        const status = result.status;
+        const statusMsg = `일일: ${status.dailyCount}/${status.dailyRemaining + status.dailyCount}, 시간: ${status.hourlyCount}/${status.hourlyRemaining + status.hourlyCount}`;
+        
+        if (status.queueLength > 1) {
+          toast.info(`현재 큐에 ${status.queueLength}개의 이메일이 대기 중입니다. (${statusMsg})`);
+        } else {
+          toast.info(`Gmail 제한 현황: ${statusMsg}`);
+        }
+      } else {
+        toast.error(result.message || '이메일 발송 중 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('이메일 발송 오류:', error);
+      toast.error('이메일 발송 중 예상치 못한 오류가 발생했습니다.');
+    }
+  };
+  */
+
+  // 관리자 답변 발송
+  const handleSendReply = async () => {
+    if (!formData.admin_reply.trim()) {
+      toast.error('답변을 작성해주세요.');
       return;
     }
 
-    // 실제 이메일 발송 구현 필요
-    toast.success('이메일 발송 기능은 구현 예정입니다.');
+    if (!error.user_email) {
+      toast.error('보고자의 이메일 정보가 없습니다.');
+      return;
+    }
+
+    try {
+      // 로딩 토스트 표시
+      const loadingToast = toast.loading('답변을 큐에 추가하는 중...');
+      
+      // 답변 이메일 발송 (Rate Limiter 적용)
+      const result = await sendAdminReplyWithRateLimit(
+        error, 
+        formData.admin_reply, 
+        error.user_email
+      );
+      
+      // 로딩 토스트 제거
+      toast.dismiss(loadingToast);
+      
+      if (result.success) {
+        toast.success(`관리자 답변이 큐에 추가되어 ${error.user_email}으로 발송 예정입니다.`);
+        
+        // 큐 상태 정보 표시
+        const status = result.status;
+        if (status.queueLength > 1) {
+          toast.info(`현재 큐에 ${status.queueLength}개의 이메일이 대기 중입니다.`);
+        }
+      } else {
+        toast.error(result.message || '답변 발송 중 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('답변 발송 오류:', error);
+      toast.error('답변 발송 중 예상치 못한 오류가 발생했습니다.');
+    }
   };
 
   const getStatusIcon = (status) => {
@@ -166,6 +272,7 @@ const ErrorDetail = ({ onStatsUpdate }) => {
         </button>
         
         <div className="flex items-center space-x-3">
+          {/* 전체 보고서 이메일 발송 버튼 (주석처리)
           {error.user_email && (
             <button
               onClick={handleSendEmail}
@@ -175,6 +282,7 @@ const ErrorDetail = ({ onStatsUpdate }) => {
               <span>이메일 발송</span>
             </button>
           )}
+          */}
           <button
             onClick={handleSave}
             disabled={saving}
@@ -226,57 +334,86 @@ const ErrorDetail = ({ onStatsUpdate }) => {
 
           {/* 관리자 응답 */}
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">관리자 응답</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">관리자 응답</h3>
             
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    상태 변경
-                  </label>
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    className="input-field"
-                  >
-                    <option value="접수됨">접수됨</option>
-                    <option value="수정완료">수정완료</option>
-                    <option value="보류">보류</option>
-                    <option value="수정불가">수정불가</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    우선순위
-                  </label>
-                  <select
-                    name="priority"
-                    value={formData.priority}
-                    onChange={handleInputChange}
-                    className="input-field"
-                  >
-                    <option value="낮음">낮음</option>
-                    <option value="보통">보통</option>
-                    <option value="높음">높음</option>
-                    <option value="긴급">긴급</option>
-                  </select>
+            <div className="space-y-3">
+              {/* 상태 및 우선순위 섹션 */}
+              <div className="bg-gray-50 p-3 rounded-lg border">
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-medium text-gray-700 whitespace-nowrap">
+                      상태 변경
+                    </label>
+                    <select
+                      name="status"
+                      value={formData.status}
+                      onChange={handleInputChange}
+                      className="form-select-compact"
+                    >
+                      <option value="접수됨">📝 접수됨</option>
+                      <option value="수정완료">✅ 수정완료</option>
+                      <option value="보류">⏸️ 보류</option>
+                      <option value="수정불가">❌ 수정불가</option>
+                    </select>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-medium text-gray-700 whitespace-nowrap">
+                      우선순위
+                    </label>
+                    <select
+                      name="priority"
+                      value={formData.priority}
+                      onChange={handleInputChange}
+                      className="form-select-compact"
+                    >
+                      <option value="낮음">🟢 낮음</option>
+                      <option value="보통">🟡 보통</option>
+                      <option value="높음">🟠 높음</option>
+                      <option value="긴급">🔴 긴급</option>
+                    </select>
+                  </div>
                 </div>
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  답변 메시지
-                </label>
+              {/* 답변 메시지 섹션 */}
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                 <div className="flex items-center justify-between mb-2">
+                   <label className="block text-xs font-medium text-blue-800">
+                     📝 답변 메시지
+                   </label>
+                  {error.user_email && formData.admin_reply.trim() && (
+                    <button
+                      type="button"
+                      onClick={handleSendReply}
+                      className="btn-primary flex items-center space-x-2 text-sm px-3 py-1"
+                    >
+                      <Mail className="w-4 h-4" />
+                      <span>답변 발송</span>
+                    </button>
+                  )}
+                </div>
                 <textarea
                   name="admin_reply"
                   value={formData.admin_reply}
                   onChange={handleInputChange}
                   rows={6}
                   placeholder="사용자에게 전달할 답변을 작성하세요..."
-                  className="input-field resize-none"
+                  className="form-textarea border-blue-300 focus:border-blue-500 focus:ring-blue-500"
                 />
+                {error.user_email && formData.admin_reply.trim() ? (
+                  <div className="mt-3 p-2 bg-green-100 border border-green-200 rounded text-sm text-green-800">
+                    💌 답변을 작성하셨습니다. 우측 "답변 발송" 버튼으로 <strong>{error.user_email}</strong>에게 전달하세요.
+                  </div>
+                ) : error.user_email ? (
+                  <p className="text-sm text-blue-600 mt-2">
+                    💡 답변을 작성하면 사용자에게 이메일로 전달할 수 있습니다.
+                  </p>
+                ) : (
+                  <div className="mt-3 p-2 bg-yellow-100 border border-yellow-200 rounded text-sm text-yellow-800">
+                    ⚠️ 보고자의 이메일 정보가 없어 답변을 전달할 수 없습니다.
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -367,9 +504,9 @@ const ErrorDetail = ({ onStatsUpdate }) => {
             <div className="card">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">브라우저 상세 정보</h3>
               <div className="text-xs text-gray-600 space-y-1">
-                <div className="grid grid-cols-2 gap-2">
+                                  <div className="grid grid-cols-2 gap-2">
                   <span className="font-medium">플랫폼:</span>
-                  <span>{error.browser_info.platform || 'N/A'}</span>
+                  <span>{error.browser_info.detailedPlatform || error.browser_info.platform || 'N/A'}</span>
                   
                   <span className="font-medium">언어:</span>
                   <span>{error.browser_info.language || 'N/A'}</span>

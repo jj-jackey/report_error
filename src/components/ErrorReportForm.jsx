@@ -120,9 +120,14 @@ const ErrorReportForm = () => {
           {/* 자동 수집된 정보 */}
           {context && (
             <div className="bg-gray-50 rounded-lg p-4 text-sm">
-              <h3 className="font-medium text-gray-700 mb-2">자동 수집된 정보</h3>
-              <div className="space-y-1 text-gray-600">
-                <p><span className="font-medium">URL:</span> {context.browserInfo.url}</p>
+              <h3 className="font-medium text-gray-700 mb-3">자동 수집된 정보</h3>
+              <div className="space-y-2 text-gray-600">
+                <div>
+                  <span className="font-medium text-gray-700">URL:</span>
+                  <div className="mt-1 p-2 bg-white border rounded text-xs break-all font-mono">
+                    {context.browserInfo.url}
+                  </div>
+                </div>
                 <p><span className="font-medium">브라우저:</span> {context.browserInfo.userAgent.split(' ')[0]}</p>
                 <p><span className="font-medium">시간:</span> {new Date(context.timestamp).toLocaleString('ko-KR')}</p>
               </div>
@@ -133,87 +138,96 @@ const ErrorReportForm = () => {
         {/* 폼 */}
         <form onSubmit={handleSubmit} className="card">
           <div className="space-y-6">
-            {/* 오류 제목 */}
-            <div>
-              <label htmlFor="errorTitle" className="block text-sm font-medium text-gray-700 mb-2">
-                오류 제목 <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                id="errorTitle"
-                name="errorTitle"
-                value={formData.errorTitle}
-                onChange={handleInputChange}
-                placeholder="예: 주문서 저장 시 오류 발생"
-                className="input-field"
-                required
-              />
-            </div>
+            {/* 오류 정보 섹션 */}
+            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+              <h3 className="text-sm font-medium text-red-800 mb-4">🚨 오류 정보</h3>
+              <div className="space-y-4">
+                {/* 오류 제목 + 우선순위 */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label htmlFor="errorTitle" className="block text-sm font-medium text-gray-700">
+                      📝 오류 제목 <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <label htmlFor="priority" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                        ⚡ 우선순위
+                      </label>
+                      <select
+                        id="priority"
+                        name="priority"
+                        value={formData.priority}
+                        onChange={handleInputChange}
+                        className="form-select-compact"
+                      >
+                        <option value="낮음">🟢 낮음</option>
+                        <option value="보통">🟡 보통</option>
+                        <option value="높음">🟠 높음</option>
+                        <option value="긴급">🔴 긴급</option>
+                      </select>
+                    </div>
+                  </div>
+                  <input
+                    type="text"
+                    id="errorTitle"
+                    name="errorTitle"
+                    value={formData.errorTitle}
+                    onChange={handleInputChange}
+                    placeholder="예: 주문서 저장 시 오류 발생"
+                    className="form-input"
+                    required
+                  />
+                </div>
 
-            {/* 우선순위 */}
-            <div>
-              <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
-                우선순위
-              </label>
-              <select
-                id="priority"
-                name="priority"
-                value={formData.priority}
-                onChange={handleInputChange}
-                className="input-field"
-              >
-                <option value="낮음">낮음</option>
-                <option value="보통">보통</option>
-                <option value="높음">높음</option>
-                <option value="긴급">긴급</option>
-              </select>
-            </div>
-
-            {/* 상세 설명 */}
-            <div>
-              <label htmlFor="errorDetail" className="block text-sm font-medium text-gray-700 mb-2">
-                상세 설명
-              </label>
-              <textarea
-                id="errorDetail"
-                name="errorDetail"
-                value={formData.errorDetail}
-                onChange={handleInputChange}
-                rows={6}
-                placeholder="오류가 발생한 상황을 자세히 설명해주세요..."
-                className="input-field resize-none"
-              />
+                {/* 상세 설명 */}
+                <div>
+                  <label htmlFor="errorDetail" className="block text-sm font-medium text-gray-700 mb-2">
+                    📋 상세 설명
+                  </label>
+                  <textarea
+                    id="errorDetail"
+                    name="errorDetail"
+                    value={formData.errorDetail}
+                    onChange={handleInputChange}
+                    rows={6}
+                    placeholder="오류가 발생한 상황을 자세히 설명해주세요..."
+                    className="form-textarea"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* 사용자 정보 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="userName" className="block text-sm font-medium text-gray-700 mb-2">
-                  이름
-                </label>
-                <input
-                  type="text"
-                  id="userName"
-                  name="userName"
-                  value={formData.userName}
-                  onChange={handleInputChange}
-                  placeholder="홍길동"
-                  className="input-field"
-                />
-              </div>
-              <div>
-                <label htmlFor="userEmail" className="block text-sm font-medium text-gray-700 mb-2">
-                  이메일 (답변 받기)
-                </label>
-                <input
-                  type="email"
-                  id="userEmail"
-                  name="userEmail"
-                  value={formData.userEmail}
-                  onChange={handleInputChange}
-                  placeholder="example@email.com"
-                  className="input-field"
-                />
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h3 className="text-sm font-medium text-blue-800 mb-3">👤 연락처 정보 (선택사항)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="userName" className="block text-sm font-medium text-gray-700 mb-2">
+                    👤 이름
+                  </label>
+                  <input
+                    type="text"
+                    id="userName"
+                    name="userName"
+                    value={formData.userName}
+                    onChange={handleInputChange}
+                    placeholder="홍길동"
+                    className="form-input"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="userEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                    📧 이메일 (답변 받기)
+                  </label>
+                  <input
+                    type="email"
+                    id="userEmail"
+                    name="userEmail"
+                    value={formData.userEmail}
+                    onChange={handleInputChange}
+                    placeholder="example@email.com"
+                    className="form-input"
+                  />
+                </div>
               </div>
             </div>
 
