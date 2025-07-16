@@ -85,8 +85,10 @@ app.post('/api/send-email', async (req, res) => {
 
 // 서버 시작
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`이메일 서버가 포트 ${PORT}에서 실행 중입니다.`);
+const HOST = '0.0.0.0';  // Render 배포용
+
+app.listen(PORT, HOST, () => {
+  console.log(`이메일 서버가 ${HOST}:${PORT}에서 실행 중입니다.`);
 });
 
 module.exports = app; 
