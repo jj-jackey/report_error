@@ -8,7 +8,7 @@
   // 설정
   const CONFIG = {
     // 오류 보고 시스템 URL (실제 배포 후 변경 필요)
-    reportUrl: 'http://localhost:5173/report',
+    reportUrl: 'https://report-error-frontend.onrender.com/report',
     // 자동으로 수집할 정보
     autoCollect: {
       browserInfo: true,
