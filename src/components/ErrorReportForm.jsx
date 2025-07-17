@@ -116,10 +116,14 @@ const ErrorReportForm = () => {
             <div className="flex items-center space-x-3">
               <AlertCircle className="w-8 h-8 text-red-500" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">오류 보고서</h1>
-                <p className="text-gray-600">
-                  {context?.projectName} 프로젝트
-                </p>
+                <h1 className="text-2xl font-bold text-gray-800">
+                  오류 보고서
+                  {context?.projectName && (
+                    <span className="text-lg font-normal text-gray-600 ml-2">
+                      ({context.projectName})
+                    </span>
+                  )}
+                </h1>
               </div>
             </div>
             <button
@@ -159,11 +163,11 @@ const ErrorReportForm = () => {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label htmlFor="errorTitle" className="block text-sm font-medium text-gray-700">
-                      📝 오류 제목 <span className="text-red-500">*</span>
+                      오류 제목 <span className="text-red-500">*</span>
                     </label>
                     <div className="flex items-center gap-2">
                       <label htmlFor="priority" className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                        ⚡ 우선순위
+                        우선순위
                       </label>
                       <select
                         id="priority"
@@ -194,7 +198,7 @@ const ErrorReportForm = () => {
                 {/* 상세 설명 */}
                 <div>
                   <label htmlFor="errorDetail" className="block text-sm font-medium text-gray-700 mb-2">
-                    📋 상세 설명
+                    상세 설명
                   </label>
                   <textarea
                     id="errorDetail"
@@ -215,7 +219,7 @@ const ErrorReportForm = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="userName" className="block text-sm font-medium text-gray-700 mb-2">
-                    👤 이름
+                    이름
                   </label>
                   <input
                     type="text"
@@ -229,7 +233,7 @@ const ErrorReportForm = () => {
                 </div>
                 <div>
                   <label htmlFor="userEmail" className="block text-sm font-medium text-gray-700 mb-2">
-                    📧 이메일 (답변 받기)
+                    이메일 (답변 받기)
                   </label>
                   <input
                     type="email"
