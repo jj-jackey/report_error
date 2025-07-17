@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from './lib/supabase';
 import ErrorReportForm from './components/ErrorReportForm';
@@ -70,18 +70,18 @@ function App() {
                   시스템에서 발생한 오류를 신속하게 보고하고 관리할 수 있는 플랫폼입니다.
                 </p>
                 <div className="space-y-3">
-                  <a 
-                    href="/report?project=테스트프로젝트" 
+                  <Link 
+                    to="/report?project=테스트프로젝트" 
                     className="block btn-primary text-center"
                   >
                     오류 보고하기
-                  </a>
-                  <a 
-                    href="/admin" 
+                  </Link>
+                  <Link 
+                    to="/admin" 
                     className="block btn-secondary text-center"
                   >
                     관리자 로그인
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
